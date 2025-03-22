@@ -54,9 +54,9 @@ const AdminManageInstructors = (props) => {
     setSelectedInstructor(null);
   };
 
-  const handleEditInstructor = (e) => {
+  const handleEditInstructor = (event) => {
     if (!selectedInstructor) return;
-    e.preventDefault();
+    event.preventDefault();
 
     const instructorData = {
       email: email,

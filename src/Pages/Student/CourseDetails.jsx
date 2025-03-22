@@ -10,6 +10,7 @@ const CourseDetails = () => {
   const [studentData, setStudentData] = useState({});
   const { courseId } = useParams();
   const [isEnrolled, setIsEnrolled] = useState(false);
+  const [studentMarks, setStudentMarks] = useState({});
   const { user } = useContext(AppContext);
 
   useEffect(() => {
@@ -18,13 +19,14 @@ const CourseDetails = () => {
         const studentDetails = await fetchStudentDetails(); // Step 1: Fetch student details
         await fetchCourseDetails(); // Step 2: Fetch course details
         await isStudentEnrolled(studentDetails); // Step 3: Check enrollment
+        await fetchStudentMarks();
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
 
     fetchData();
-  }, [courseId, user.token, user.userId]); // Add dependencies if needed
+  }, [courseId]);
 
   const isStudentEnrolled = async (studentDetails) => {
     try {
@@ -75,6 +77,22 @@ const CourseDetails = () => {
     }
   };
 
+  const fetchStudentMarks = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8001/grade/getStudentMarks/${studentData.id}/${courseId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        }
+      );
+      setStudentMarks(response.data);
+    } catch (error) {
+      console.error("Error fetching student marks!", error);
+    }
+  };
+
   const handleEnroll = async () => {
     try {
       const response = await axios.post(
@@ -86,8 +104,21 @@ const CourseDetails = () => {
           },
         }
       );
+      const response2 = await axios.post(
+        `http://localhost:8001/grade/addStudentGrade`,
+        {
+          studentId: studentData.id,
+          courseId: courseId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        }
+      );
       console.log(response.data);
       setIsEnrolled(true); // Update the enrollment status
+      fetchStudentMarks();
       await fetchCourseDetails(); // Re-fetch course details to reflect changes
     } catch (error) {
       console.error("Error enrolling student to course!", error);
@@ -131,13 +162,26 @@ const CourseDetails = () => {
                 <button
                   href="#"
                   title=""
-                  className="flex items-center justify-center py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-gray-300 rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                  className={`flex items-center justify-center py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-gray-300 rounded-lg border border-gray-200 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 ${
+                    isEnrolled
+                      ? "disabled:hover:none"
+                      : "hover:bg-gray-100 hover:text-primary-700 dark:hover:text-white dark:hover:bg-gray-700"
+                  }`}
                   onClick={handleEnroll}
                   disabled={isEnrolled}
                 >
                   {isEnrolled ? "Already Enrolled" : "Enroll Now"}
                 </button>
               </div>
+
+              {studentMarks.marks !== null &&
+                studentMarks.marks !== undefined && (
+                  <div className="mt-4">
+                    <p className="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">
+                      Your marks in this course: {studentMarks.marks}
+                    </p>
+                  </div>
+                )}
 
               <hr className="my-6 md:my-8 border-gray-200 dark:border-gray-800" />
 

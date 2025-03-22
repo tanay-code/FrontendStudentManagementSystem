@@ -7,11 +7,25 @@ const RegisterPageStudent = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState("STUDENT"); // Default role
 
   const navigate = useNavigate();
 
+  const validateEmail = (email) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(String(email).toLowerCase());
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (fullName.trim() === "") {
+      alert("Name is required!");
+      return;
+    }
+    if (email.trim() === "" || !validateEmail(email)) {
+      alert("A valid email is required!");
+      return;
+    }
     if (password !== confirmPassword) {
       alert("Passwords do not match!");
       return;
@@ -21,7 +35,7 @@ const RegisterPageStudent = () => {
         name: fullName,
         email: email,
         password: password,
-        roles: "STUDENT",
+        roles: role, // Use the selected role
       });
       console.log("Registration successful:", response.data);
       navigate("/");
@@ -47,33 +61,41 @@ const RegisterPageStudent = () => {
             </p>
           </div>
           <input
-            className="text-sm w-full px-4 py-2 border border-solid border-gray-300 rounded"
+            className="text-sm w-full px-4 py-2 border border-solid border-gray-300 rounded dark:text-white"
             type="text"
             placeholder="Full Name"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
           />
           <input
-            className="text-sm w-full px-4 py-2 border border-solid border-gray-300 rounded mt-4"
+            className="text-sm w-full px-4 py-2 border border-solid border-gray-300 rounded mt-4 dark:text-white"
             type="text"
             placeholder="Email Address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
           <input
-            className="text-sm w-full px-4 py-2 border border-solid border-gray-300 rounded mt-4"
+            className="text-sm w-full px-4 py-2 border border-solid border-gray-300 rounded mt-4 dark:text-white"
             type="password"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
           <input
-            className="text-sm w-full px-4 py-2 border border-solid border-gray-300 rounded mt-4"
+            className="text-sm w-full px-4 py-2 border border-solid border-gray-300 rounded mt-4 dark:text-white"
             type="password"
             placeholder="Confirm Password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
+          <select
+            className="text-sm w-full px-4 py-2 border border-solid border-gray-300 rounded mt-4 dark:text-white"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+          >
+            <option value="STUDENT">STUDENT</option>
+            <option value="INSTRUCTOR">INSTRUCTOR</option>
+          </select>
           <div className="text-center md:text-left">
             <button
               className="mt-4 bg-blue-600 hover:bg-blue-700 px-4 py-2 text-white uppercase rounded text-xs tracking-wider"

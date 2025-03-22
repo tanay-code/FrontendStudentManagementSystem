@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   Disclosure,
   DisclosureButton,
@@ -12,9 +12,12 @@ import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import profileIcon from "../../assets/user.png";
 import collegeIcon from "../../assets/college-logo.png";
 import { useLocation } from "react-router-dom";
+import AppContext from "../../context/AppContext";
 
 const InstructorHeader = () => {
   const location = useLocation();
+  const { user, isDarkMode, toggleDarkMode, logout } = useContext(AppContext);
+
   const navigation = [
     {
       name: "Home",
@@ -41,18 +44,18 @@ const InstructorHeader = () => {
     return classes.filter(Boolean).join(" ");
   }
 
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  // const [isDarkMode, setIsDarkMode] = useState(false);
 
-  useEffect(() => {
-    console.log(isDarkMode);
-    const root = window.document.documentElement;
-    console.log(root);
-    if (isDarkMode) {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
-  }, [isDarkMode]);
+  // useEffect(() => {
+  //   console.log(isDarkMode);
+  //   const root = window.document.documentElement;
+  //   console.log(root);
+  //   if (isDarkMode) {
+  //     root.classList.add("dark");
+  //   } else {
+  //     root.classList.remove("dark");
+  //   }
+  // }, [isDarkMode]);
   return (
     <>
       <Disclosure as="nav" className="bg-gray-800 dark:bg-gray-950">
@@ -129,28 +132,27 @@ const InstructorHeader = () => {
                   className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 ring-1 shadow-lg ring-black/5 transition focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
                 >
                   <MenuItem>
-                    <a
-                      href="#"
-                      className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:outline-hidden"
-                    >
-                      Your Profile
-                    </a>
+                    <div className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:outline-hidden">
+                      Hi ,{user.name}
+                    </div>
                   </MenuItem>
                   <MenuItem>
                     <button
-                      onClick={() => setIsDarkMode(!isDarkMode)}
+                      onClick={toggleDarkMode}
                       className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:outline-hidden"
                     >
-                      Dark Mode
+                      {isDarkMode
+                        ? "Change to Light Mode"
+                        : "Change to Dark Mode"}
                     </button>
                   </MenuItem>
                   <MenuItem>
-                    <a
-                      href="#"
+                    <div
+                      onClick={logout}
                       className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:outline-hidden"
                     >
                       Sign out
-                    </a>
+                    </div>
                   </MenuItem>
                 </MenuItems>
               </Menu>

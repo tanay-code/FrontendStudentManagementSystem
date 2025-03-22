@@ -13,6 +13,7 @@ const AdminManageCourses = (props) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [isEditCourseModalOpen, setIsEditCourseModalOpen] = useState(false);
+  const [isAddCourseModalOpen, setIsAddCourseModalOpen] = useState(false);
 
   const [description, setDescription] = useState("");
   const [name, setName] = useState("");
@@ -22,13 +23,15 @@ const AdminManageCourses = (props) => {
 
   useEffect(() => {
     fetchCourses();
+    fetchCoursesAssigned();
   }, []);
 
   useEffect(() => {
-    if (!isEditCourseModalOpen) {
+    if (!isEditCourseModalOpen && !isAddCourseModalOpen) {
       fetchCourses();
+      fetchCoursesAssigned();
     }
-  }, [isEditCourseModalOpen]);
+  }, [isEditCourseModalOpen, isAddCourseModalOpen]);
 
   const fetchCourses = () => {
     axios
@@ -49,7 +52,6 @@ const AdminManageCourses = (props) => {
   const handleDeleteClick = (course) => {
     setSelectedCourse(course);
     setIsModalOpen(true);
-    console.log(student, ">>>>>>>>>>>>>>");
   };
 
   const handleEditCourseClick = (course) => {
@@ -59,6 +61,13 @@ const AdminManageCourses = (props) => {
     setSelectedCourse(course);
     setIsEditCourseModalOpen(true);
     console.log("hsaaaaaaaaaaaaa", course);
+  };
+
+  const handleAddCourseClick = () => {
+    setName("");
+    setDescription("");
+    setDuration("");
+    setIsAddCourseModalOpen(true);
   };
 
   // Close modal
@@ -72,13 +81,17 @@ const AdminManageCourses = (props) => {
     setSelectedCourse(null);
   };
 
+  const closeAddCourseModal = () => {
+    setIsAddCourseModalOpen(false);
+  };
+
   // Delete student
   const handleConfirmDelete = () => {
     if (!selectedCourse) return;
 
     axios
       .delete(
-        `http://localhost:8081/courses/deleteCourse/${selectedCourse.id}`,
+        `http://localhost:8001/courses/deleteCourse/${selectedCourse.id}`,
         {
           headers: {
             Authorization: `Bearer ${user.token}`,
@@ -95,6 +108,50 @@ const AdminManageCourses = (props) => {
         console.error("Error deleting course!", error);
       });
   };
+  const [coursesIdAssigned, setCoursesIdAssigned] = useState([]);
+  const fetchCoursesAssigned = (e) => {
+    axios
+      .get(
+        `http://localhost:8001/instructors/byUserId/${user.userId}/courses`,
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        }
+      )
+      .then((response) => {
+        setCoursesIdAssigned(response.data);
+        console.log(response.data, ">>>>>>>>>>>>>>>>>>>>>>");
+      })
+      .catch((error) => {
+        console.error("Error fetching courseId Assigned!", error);
+      });
+  };
+
+  const handleAddCourse = (e) => {
+    e.preventDefault();
+    axios
+      .post(
+        `http://localhost:8001/courses/addCourse`,
+        {
+          courseName: name,
+          description: description,
+          duration: duration,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        }
+      )
+      .then(() => {
+        closeAddCourseModal();
+        fetchCourses();
+      })
+      .catch((error) => {
+        console.error("Error adding course!", error);
+      });
+  };
 
   const handleEditCourse = (e) => {
     if (!selectedCourse) return;
@@ -104,6 +161,7 @@ const AdminManageCourses = (props) => {
       description: description,
       duration: duration,
     };
+    debugger;
     axios
       .put(
         `http://localhost:8001/courses/updateCourse/${selectedCourse.id}`,
@@ -133,7 +191,15 @@ const AdminManageCourses = (props) => {
       ) : (
         <AdminHeader />
       )}
-
+      {!props.hideActionButtons && (
+        <button
+          type="button"
+          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 ml-[25px] mt-[30px]"
+          onClick={handleAddCourseClick}
+        >
+          Add Course
+        </button>
+      )}
       <div className="relative overflow-x-auto shadow-md sm:rounded-lg mb-[75px] mx-[25px] mt-[75px]">
         <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
           <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -169,7 +235,17 @@ const AdminManageCourses = (props) => {
                 >
                   {course.id}
                 </th>
-                <td className="px-6 py-4">{course.courseName}</td>
+                <td className="px-6 py-4">
+                  <span
+                    className={
+                      coursesIdAssigned?.includes(course.id)
+                        ? "font-bold text-white"
+                        : ""
+                    }
+                  >
+                    {course.courseName}
+                  </span>
+                </td>
                 <td className="px-6 py-4">{course.description}</td>
                 <td className="px-6 py-4">{course.duration}</td>
                 {!props.hideActionButtons && (
@@ -322,6 +398,98 @@ const AdminManageCourses = (props) => {
                 Edit
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {isAddCourseModalOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-md flex justify-center items-center"
+          onClick={closeAddCourseModal}
+        >
+          <div
+            className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-96"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Add Course
+            </h2>
+            <form className="max-w-md mx-auto" onSubmit={handleAddCourse}>
+              <div className="relative z-0 w-full mb-5 group mt-4">
+                <input
+                  type="text"
+                  name="floating_name"
+                  id="floating_name"
+                  className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                  placeholder=" "
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+                <label
+                  htmlFor="floating_name"
+                  className="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
+                >
+                  Course Name
+                </label>
+              </div>
+
+              <div className="grid md:grid-cols-2 md:gap-6">
+                <div className="relative z-0 w-full mb-5 group">
+                  <input
+                    type="text"
+                    name="floating_description"
+                    id="floating_description"
+                    className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                    placeholder=" "
+                    required
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                  />
+                  <label
+                    htmlFor="floating_description"
+                    className="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
+                  >
+                    Description
+                  </label>
+                </div>
+              </div>
+              <div className="grid md:grid-cols-2 md:gap-6">
+                <div className="relative z-0 w-full mb-5 group">
+                  <input
+                    type="text"
+                    name="floating_duration"
+                    id="floating_duration"
+                    className="block py-2.5 px-0 w-full text-sm text-gray-900 bg-transparent border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                    placeholder=" "
+                    required
+                    value={duration}
+                    onChange={(e) => setDuration(e.target.value)}
+                  />
+                  <label
+                    htmlFor="floating_duration"
+                    className="peer-focus:font-medium absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 rtl:peer-focus:translate-x-1/4 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6"
+                  >
+                    Duration
+                  </label>
+                </div>
+              </div>
+
+              <div className="mt-4 flex justify-end">
+                <button
+                  type="button"
+                  className="px-4 py-2 bg-gray-300 dark:bg-gray-700 rounded-md mr-2 text-white"
+                  onClick={closeAddCourseModal}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md"
+                >
+                  Add
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

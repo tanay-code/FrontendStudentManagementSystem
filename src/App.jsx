@@ -130,21 +130,25 @@ function App() {
         <Route
           path="/instructor/viewStudents"
           element={
-            <AdminManageStudents
-              hideActionButtons={true}
-              isInstructor={true}
-              isStudent={false}
-            />
+            <ProtectedRoute requiredRole="INSTRUCTOR">
+              <AdminManageStudents
+                hideActionButtons={true}
+                isInstructor={true}
+                isStudent={false}
+              />
+            </ProtectedRoute>
           }
         />
         <Route
           path="/instructor/viewCourses"
           element={
-            <AdminManageCourses
-              hideActionButtons={true}
-              isInstructor={true}
-              isStudent={false}
-            />
+            <ProtectedRoute requiredRole="INSTRUCTOR">
+              <AdminManageCourses
+                hideActionButtons={true}
+                isInstructor={true}
+                isStudent={false}
+              />
+            </ProtectedRoute>
           }
         />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
